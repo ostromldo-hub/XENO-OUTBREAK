@@ -1,0 +1,254 @@
+{
+  "boxes": [
+    {
+      "name": "Habitat west wall",
+      "position": [
+        6,
+        2,
+        -9
+      ],
+      "size": [
+        0.3,
+        4,
+        12
+      ],
+      "material": "wall",
+      "collision": true
+    },
+    {
+      "name": "Habitat east wall",
+      "position": [
+        16,
+        2,
+        -9
+      ],
+      "size": [
+        0.3,
+        4,
+        12
+      ],
+      "material": "wall",
+      "collision": true
+    },
+    {
+      "name": "Habitat front wall 7.7",
+      "position": [
+        7.7,
+        2,
+        -3
+      ],
+      "size": [
+        3.4,
+        4,
+        0.3
+      ],
+      "material": "wall",
+      "collision": true
+    },
+    {
+      "name": "Habitat front wall 14.3",
+      "position": [
+        14.3,
+        2,
+        -3
+      ],
+      "size": [
+        3.4,
+        4,
+        0.3
+      ],
+      "material": "wall",
+      "collision": true
+    },
+    {
+      "name": "Habitat front lintel",
+      "position": [
+        11,
+        3.6,
+        -3
+      ],
+      "size": [
+        3.2,
+        0.8,
+        0.3
+      ],
+      "material": "wall",
+      "collision": false
+    },
+    {
+      "name": "Habitat door light",
+      "position": [
+        9.3,
+        1.6,
+        -2.83
+      ],
+      "size": [
+        0.06,
+        3.1,
+        0.035
+      ],
+      "material": "light",
+      "collision": false
+    },
+    {
+      "name": "Habitat door light",
+      "position": [
+        12.7,
+        1.6,
+        -2.83
+      ],
+      "size": [
+        0.06,
+        3.1,
+        0.035
+      ],
+      "material": "light",
+      "collision": false
+    },
+    {
+      "name": "Habitat rear wall 7.7",
+      "position": [
+        7.7,
+        2,
+        -15
+      ],
+      "size": [
+        3.4,
+        4,
+        0.3
+      ],
+      "material": "wall",
+      "collision": true
+    },
+    {
+      "name": "Habitat rear wall 14.3",
+      "position": [
+        14.3,
+        2,
+        -15
+      ],
+      "size": [
+        3.4,
+        4,
+        0.3
+      ],
+      "material": "wall",
+      "collision": true
+    },
+    {
+      "name": "Habitat rear lintel",
+      "position": [
+        11,
+        3.6,
+        -15
+      ],
+      "size": [
+        3.2,
+        0.8,
+        0.3
+      ],
+      "material": "wall",
+      "collision": false
+    },
+    {
+      "name": "Habitat door light",
+      "position": [
+        9.3,
+        1.6,
+        -15.17
+      ],
+      "size": [
+        0.06,
+        3.1,
+        0.035
+      ],
+      "material": "light",
+      "collision": false
+    },
+    {
+      "name": "Habitat door light",
+      "position": [
+        12.7,
+        1.6,
+        -15.17
+      ],
+      "size": [
+        0.06,
+        3.1,
+        0.035
+      ],
+      "material": "light",
+      "collision": false
+    },
+    {
+      "name": "Habitat roof",
+      "position": [
+        11,
+        4.15,
+        -9
+      ],
+      "size": [
+        10.5,
+        0.3,
+        12.5
+      ],
+      "material": "trim",
+      "collision": false
+    },
+    {
+      "name": "Habitat ceiling light",
+      "position": [
+        11,
+        3.97,
+        -9
+      ],
+      "size": [
+        0.4,
+        0.04,
+        6
+      ],
+      "material": "light",
+      "collision": false
+    },
+    {
+      "name": "Research console",
+      "position": [
+        14.1,
+        0.55,
+        -9
+      ],
+      "size": [
+        1.2,
+        1.1,
+        2.4
+      ],
+      "material": "trim",
+      "collision": true
+    },
+    {
+      "name": "Research display",
+      "position": [
+        14.1,
+        1.35,
+        -9
+      ],
+      "size": [
+        1.1,
+        0.65,
+        0.16
+      ],
+      "material": "screen",
+      "collision": false
+    }
+  ],
+  "frontDoor": {
+    "x": 11,
+    "z": -3,
+    "width": 3.2
+  },
+  "rearDoor": {
+    "x": 11,
+    "z": -15,
+    "width": 3.2
+  }
+}

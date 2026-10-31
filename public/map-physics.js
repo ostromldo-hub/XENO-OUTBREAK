@@ -1,0 +1,31 @@
+import {outerHeight,safeHouseAt} from './hunt-rules.js';
+import {colliderTop} from './surface-physics.js';
+import {terrainLift} from './survival-sim.js';
+export function createMapPhysics(data) {
+ const radius=.4, margin=1, cell=4, buckets=new Map();
+ const key=(x,z)=>`${Math.floor(x/cell)},${Math.floor(z/cell)}`;
+ for(const c of data.colliders)for(let x=Math.floor((c.minX-1)/cell);x<=Math.floor((c.maxX+1)/cell);x++)for(let z=Math.floor((c.minZ-1)/cell);z<=Math.floor((c.maxZ+1)/cell);z++){const k=`${x},${z}`;if(!buckets.has(k))buckets.set(k,[]);buckets.get(k).push(c);}
+ function ground(x,z){const gx=Math.max(0,Math.min(data.nx-1,(x-(data.terrainMinX??data.minX))/((data.terrainMaxX??data.maxX)-(data.terrainMinX??data.minX))*(data.nx-1))),gz=Math.max(0,Math.min(data.nz-1,(z-(data.terrainMinZ??data.minZ))/((data.terrainMaxZ??data.maxZ)-(data.terrainMinZ??data.minZ))*(data.nz-1))),ix=Math.min(data.nx-2,Math.floor(gx)),iz=Math.min(data.nz-2,Math.floor(gz)),u=gx-ix,v=gz-iz,a=data.heights[iz*data.nx+ix],b=data.heights[iz*data.nx+ix+1],c=data.heights[(iz+1)*data.nx+ix],d=data.heights[(iz+1)*data.nx+ix+1];return outerHeight(x,z,a*(1-u)*(1-v)+b*u*(1-v)+c*(1-u)*v+d*u*v+terrainLift(Math.max(-80,Math.min(80,x)),Math.max(-80,Math.min(80,z))));}
+ function blocked(x,z,r=radius){if(!Number.isFinite(x)||!Number.isFinite(z)||x<data.minX+margin+r||x>data.maxX-margin-r||z<data.minZ+margin+r||z>data.maxZ-margin-r)return true;return (buckets.get(key(x,z))||[]).some(c=>x+r>c.minX&&x-r<c.maxX&&z+r>c.minZ&&z-r<c.maxZ);}
+ function atHeight(x,z,r,feet){if(x<data.minX+margin+r||x>data.maxX-margin-r||z<data.minZ+margin+r||z>data.maxZ-margin-r)return true;return (buckets.get(key(x,z))||[]).some(c=>{if(!(x+r>c.minX&&x-r<c.maxX&&z+r>c.minZ&&z-r<c.maxZ))return false;if(Number.isFinite(c.minY)){const top=c.walkable?colliderTop(c,x,z,ground):c.maxY;const bottom=c.walkable?top-.18:c.minY;if(feet+1.65<bottom||feet+.23>=top)return false;}if(!c.walkable)return true;const px=Math.max(c.minX+1e-4,Math.min(c.maxX-1e-4,x)),pz=Math.max(c.minZ+1e-4,Math.min(c.maxZ-1e-4,z));const top=colliderTop(c,px,pz,ground);return feet+.23<top;});}
+ function support(x,z,limit=Infinity){let y=ground(x,z);for(const c of buckets.get(key(x,z))||[]){if(!c.walkable||x<c.minX||x>c.maxX||z<c.minZ||z>c.maxZ)continue;const top=colliderTop(c,x,z,ground);if(top<=limit)y=Math.max(y,top);}return y;}
+ function move(e,dx,dz,r=radius){if(!Number.isFinite(dx)||!Number.isFinite(dz))return;const steps=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.12));for(let i=0;i<steps;i++){const hit=(x,z)=>(e.isAlien&&safeHouseAt(x,z))||(Number.isFinite(e.feetY)?atHeight(x,z,r,e.feetY):blocked(x,z,r));if(!hit(e.x+dx/steps,e.z))e.x+=dx/steps;if(!hit(e.x,e.z+dz/steps))e.z+=dz/steps;}}
+ function lineClear(a,b,r=.05){const n=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.z-a.z)/.18));for(let i=0;i<=n;i++)if(blocked(a.x+(b.x-a.x)*i/n,a.z+(b.z-a.z)*i/n,r))return false;return true;}
+ function shotClear(a,b){const count=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y,b.z-a.z)/.25));for(let i=1;i<=count;i++){const t=i/count,x=a.x+(b.x-a.x)*t,z=a.z+(b.z-a.z)*t,y=a.y+(b.y-a.y)*t;if(y<ground(x,z)+.03)return false;for(const c of buckets.get(key(x,z))||[]){if(x<=c.minX||x>=c.maxX||z<=c.minZ||z>=c.maxZ)continue;const floor=Number.isFinite(c.minY)?(c.walkable?colliderTop(c,x,z,ground)-.18:c.minY):ground(x,z),top=Number.isFinite(c.maxY)&&!c.walkable?c.maxY:c.walkable?colliderTop(c,x,z,ground):floor+(/trunk/i.test(c.name)?24:/bollard/i.test(c.name)?1:/crate/i.test(c.name)?1.2:/spacecraft/i.test(c.name)?8:4.5);if(y>=floor&&y<=top)return false;}}return true;}
+ function impactNormal(p){const h=ground(p.x,p.z);if(p.y<=h+.08){const dx=(ground(p.x+.05,p.z)-ground(p.x-.05,p.z))/.1,dz=(ground(p.x,p.z+.05)-ground(p.x,p.z-.05))/.1,len=Math.hypot(dx,1,dz);return {x:-dx/len,y:1/len,z:-dz/len};}for(const c of buckets.get(key(p.x,p.z))||[]){if(p.x<c.minX-.04||p.x>c.maxX+.04||p.z<c.minZ-.04||p.z>c.maxZ+.04)continue;const top=c.walkable?colliderTop(c,p.x,p.z,ground):Number.isFinite(c.maxY)?c.maxY:h+(/trunk/i.test(c.name)?24:/crate/i.test(c.name)?1.2:4.5);const faces=[[Math.abs(p.x-c.minX),-1,0,0],[Math.abs(p.x-c.maxX),1,0,0],[Math.abs(p.z-c.minZ),0,0,-1],[Math.abs(p.z-c.maxZ),0,0,1],[Math.abs(p.y-top),0,1,0]];faces.sort((a,b)=>a[0]-b[0]);return {x:faces[0][1],y:faces[0][2],z:faces[0][3]};}return {x:0,y:1,z:0};}
+ function spawn(kind,index=0){const points=data.spawns[kind]||[];for(let i=0;i<points.length;i++){const p=points[(index+i)%points.length];if(!blocked(p.x,p.z,.55))return {...p};}throw new Error('No clear spawn for '+kind);}
+ // Precomputed navigation cells plus breadth-first distances to living players.
+ const step=data.navStep||1.6,nx=Math.floor((data.maxX-data.minX-2*margin)/step)+1,nz=Math.floor((data.maxZ-data.minZ-2*margin)/step)+1;
+ const at=(ix,iz)=>({x:data.minX+margin+ix*step,z:data.minZ+margin+iz*step});
+ const walk=new Uint8Array(nx*nz);for(let z=0;z<nz;z++)for(let x=0;x<nx;x++){const p=at(x,z);walk[z*nx+x]=!blocked(p.x,p.z,.65);}
+ const neighbors=i=>{const x=i%nx,z=Math.floor(i/nx);return [x>0?i-1:-1,x<nx-1?i+1:-1,z>0?i-nx:-1,z<nz-1?i+nx:-1].filter(n=>n>=0&&walk[n]);};
+ function field(targets){const dist=new Int32Array(walk.length);dist.fill(-1);const q=[];
+  for(const p of targets){let best=-1,d=Infinity;for(let i=0;i<walk.length;i++)if(walk[i]){const c=at(i%nx,Math.floor(i/nx)),dd=(c.x-p.x)**2+(c.z-p.z)**2;if(dd<d){d=dd;best=i;}}if(best>=0&&dist[best]<0){dist[best]=0;q.push(best);}}
+  for(let h=0;h<q.length;h++)for(const n of neighbors(q[h]))if(dist[n]<0){const a=at(q[h]%nx,Math.floor(q[h]/nx)),b=at(n%nx,Math.floor(n/nx));if(!targets.some(p=>(b.x-p.x)**2+(b.z-p.z)**2<=260**2)||!lineClear(a,b,.55))continue;dist[n]=dist[q[h]]+1;q.push(n);}return dist;
+ }
+ function waypoint(e,dist){const ix=Math.round((e.x-data.minX-margin)/step),iz=Math.round((e.z-data.minZ-margin)/step);let best=null,score=Infinity;
+  for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++){const x=ix+dx,z=iz+dz;if(x<0||z<0||x>=nx||z>=nz)continue;const i=z*nx+x;if(dist[i]<0)continue;const p=at(x,z),d=Math.hypot(p.x-e.x,p.z-e.z);const s=dist[i]*step+d;if(d>.2&&s<score&&lineClear(e,p,.5)){score=s;best=p;}}
+  return best;
+ }
+ return {ground,blocked,move,spawn,support,shotClear,impactNormal,atHeight,lineClear,field,waypoint,data};
+}
